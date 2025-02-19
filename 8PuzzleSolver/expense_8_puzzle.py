@@ -1,45 +1,63 @@
 import os
 import sys
 
-# List of available Algorithms
 
-def BFS(flag):
-   print("Hello BFS" + flag)
-def UCS(flag):
+# 3rd. List of available Algorithms
+def BFS(file1num, file2num, flag):
+   print(str(file1num[0]) + " Hello BFS " + str(flag))
+
+def UCS(file1num, file2num, flag):
    print("Hello UCS")
-def Greedy(flag):
+
+def Greedy(file1num, file2num, flag):
    print("Hello greedy")
-# Default Algorithm
-def A_Star(flag):
+
+def A_Star(file1num, file2num, flag):
    print("Hello A*")
 
+# 2nd. Identify Algorithm
+def Algorithms(argv, flag):
+   file1num = openfile(argv[1])
+   file2num = openfile(argv[2])
 
-# Verify file and determine User input
-def main():
-   inputs = sys.argv
+   # If no algorithm inputed, default to A*
+   if len(argv) < 4:
+      A_Star(file1num, file2num, flag)
+   else:
+      match argv[3]:
+         case "bfs":
+            BFS(file1num, file2num, flag)
+         case "ucs":
+            UCS(file1num, file2num, flag)
+         case "greedy":
+            Greedy(file1num, file2num, flag)
+         case "a*":
+            A_Star(file1num, file2num, flag)
 
-   # 1st. Catch exception:
-   if  inputs[1] != "start.txt":
-      print("Error: Start file missing")
-      return -1
-   elif  inputs[2] != "goal.txt":
-      print("Error: Goal file mssing")
-      return -1
-   
+def openfile(file):
+   num = []
+   f = open(file, "r")
+   for line in f:
+      if line != "END OF FILE":
+         num.append(line)
+   f.close()
+   return num
 
-
-   # 2nd. Check identify Algorithm
-   match inputs[3]:
-      case "bfs":
-         BFS(inputs[4])
-      case "ucs":
-         UCS(inputs[4])
-      case "greedy":
-         Greedy(inputs[4])
-      case "a*":
-         A_Star(inputs[4])
-      case _:
-         A_Star(inputs[4])
-
+# 1st. Check all user arguments 
 if __name__ == "__main__":
-    main()
+   
+   # Catch exception:
+   argv = sys.argv
+   if  argv[1] != "start.txt":
+      print("Error: Start file missing")
+      exit -1
+   elif  argv[2] != "goal.txt":
+      print("Error: Goal file mssing")
+      exit -1
+   
+   # Check if dump-flag was set
+   flag = 0
+   if len(argv) == 5:
+      flag = argv[4]
+   
+   Algorithms(argv, flag)
