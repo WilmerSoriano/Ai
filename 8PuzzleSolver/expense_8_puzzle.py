@@ -2,48 +2,53 @@ import os
 import sys
 
 
-# 3rd. List of available Algorithms
-def BFS(file1num, file2num, flag):
-   print(str(file1num[0]) + " Hello BFS " + str(flag))
+#3.0 List of available Algorithms
+def BFS(Start, Goal, flag):
+   print("E")
 
-def UCS(file1num, file2num, flag):
+def UCS(Start, Goal, flag):
    print("Hello UCS")
 
-def Greedy(file1num, file2num, flag):
+def Greedy(Start, Goal, flag):
    print("Hello greedy")
 
-def A_Star(file1num, file2num, flag):
+def A_Star(Start, Goal, flag):
    print("Hello A*")
 
-# 2nd. Identify Algorithm
+#3.1 Set the rules of the game
+def puzzleRules(Goal):
+
+# 2.0 Identify Algorithm
 def Algorithms(argv, flag):
-   file1num = openfile(argv[1])
-   file2num = openfile(argv[2])
+   Start = extractNum(argv[1])
+   Goal = extractNum(argv[2])
 
    # If no algorithm inputed, default to A*
    if len(argv) < 4:
-      A_Star(file1num, file2num, flag)
+      A_Star(Start, Goal, flag)
    else:
       match argv[3]:
          case "bfs":
-            BFS(file1num, file2num, flag)
+            BFS(Start, Goal, flag)
          case "ucs":
-            UCS(file1num, file2num, flag)
+            UCS(Start, Goal, flag)
          case "greedy":
-            Greedy(file1num, file2num, flag)
+            Greedy(Start, Goal, flag)
          case "a*":
-            A_Star(file1num, file2num, flag)
+            A_Star(Start, Goal, flag)
 
-def openfile(file):
-   num = []
+#2.1 Extract the numbers from the file
+def extractNum(file):
+   numbers = []
    f = open(file, "r")
    for line in f:
       if line != "END OF FILE":
-         num.append(line)
+         for num in line.split():
+            numbers.append(num)
    f.close()
-   return num
+   return numbers
 
-# 1st. Check all user arguments 
+# 1. Check all user arguments 
 if __name__ == "__main__":
    
    # Catch exception:
