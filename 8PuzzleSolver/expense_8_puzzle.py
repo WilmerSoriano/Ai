@@ -3,7 +3,8 @@ import sys
 
 #3.0 List of available Algorithms
 def BFS(Start, Goal, flag):
-   print("E")
+   newGame = puzzleGame(Start)
+   newGame.constructArry()
 
 def UCS(Start, Goal, flag):
    print("Hello UCS")
@@ -18,12 +19,52 @@ def A_Star(Start, Goal, flag):
 """ 
    NOTE:
    Recommed playing 8-puzzle game to
-   underatnd rules and mechanics.
+   understand rules and mechanics.
+
+   Zero would be our perspective 
+
 """
 class puzzleGame:
-   # Grab the initial values from Start.txt
-   def __init(self, initialize):
-      self.start = initialize
+   # Constructor to initialize values
+   def __init__(self, Sets):
+      self.set = Sets
+
+   # Look for 0 within array, 0 will be our mover
+   def ZeroLocation(self):
+      return self.state.index(0)
+   
+   # Creating the 8 puzzle board game in 2D array
+   def constructBoard(self):
+      doubleArry = [[0 for i in range(3)] for j in range(3)]
+      for x in range(3):
+         for y in range(3):
+            doubleArry[x][y] = self.set[x*3+y]
+            
+      return doubleArry
+   
+   #def moveCost(self):
+
+   
+   def moves(self, direction):
+      CurrentLocation = self.ZeroLocation()
+      newSet = list(self.set)
+
+      """
+      index at 0 = [1][1]
+      2 3 6
+      1 0 7
+      4 8 5
+      """
+      moves = {
+         'up':[-1][0], 
+         'down':[1][0],
+         'left':[0][-1],
+         'right':[0][1]
+      }
+
+
+
+
 
 # 2.0 Identify Algorithm
 def Algorithms(argv, flag):
