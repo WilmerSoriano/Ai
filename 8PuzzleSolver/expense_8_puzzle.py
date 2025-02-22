@@ -3,8 +3,9 @@ import sys
 
 #3.0 List of available Algorithms
 def BFS(Start, Goal, flag):
+   print(Start[4])
    newGame = puzzleGame(Start)
-   newGame.constructArry()
+   newGame.moves("up")
 
 def UCS(Start, Goal, flag):
    print("Hello UCS")
@@ -31,7 +32,7 @@ class puzzleGame:
 
    # Look for 0 within array, 0 will be our mover
    def ZeroLocation(self):
-      return self.state.index(0)
+      return self.set.index(0)
    
    # Creating the 8 puzzle board game in 2D array
    def constructBoard(self):
@@ -41,13 +42,12 @@ class puzzleGame:
             doubleArry[x][y] = self.set[x*3+y]
             
       return doubleArry
-   
-   #def moveCost(self):
 
-   
    def moves(self, direction):
-      CurrentLocation = self.ZeroLocation()
+      CurrentIndex = self.ZeroLocation()
+      print(CurrentIndex)
       newSet = list(self.set)
+      print(newSet)
 
       """
       index at 0 = [1][1]
@@ -56,15 +56,30 @@ class puzzleGame:
       4 8 5
       """
       moves = {
-         'up':[-1][0], 
-         'down':[1][0],
-         'left':[0][-1],
-         'right':[0][1]
+         'up':[-1, 0], 
+         'down':[1, 0],
+         'left':[0, -1],
+         'right':[0, 1]
       }
 
+      # Check cu
+      posZero_x, posZero_y = divmod(CurrentIndex,3)
 
+      move = moves.get(direction)
+      if move:
+         newPos_x = posZero_x + move[1]
+         newPos_y = posZero_y + move[0]
 
-
+         # Check if move is within bound of game, CUDA method for 1D
+         if 0 <= newPos_x < 3 and 0 <= newPos_y < 3:
+            # Calculate the offset of new index
+            newIndex = newPos_y*3 + newPos_x;
+            
+            # Swap Zero with the moving position and update the Set with new position
+            newSet[CurrentIndex], newSet[newIndex] = newSet[newIndex], newSet[CurrentIndex]
+            self.set = tuple(newSet)
+            return True
+      return False
 
 # 2.0 Identify Algorithm
 def Algorithms(argv, flag):
@@ -92,7 +107,7 @@ def extractNum(file):
    for line in f:
       if line != "END OF FILE":
          for num in line.split():
-            numbers.append(num)
+            numbers.append(int(num))
    f.close()
    return numbers
 
