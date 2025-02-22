@@ -1,7 +1,6 @@
 import os
 import sys
 
-
 #3.0 List of available Algorithms
 def BFS(Start, Goal, flag):
    print("E")
@@ -15,8 +14,16 @@ def Greedy(Start, Goal, flag):
 def A_Star(Start, Goal, flag):
    print("Hello A*")
 
-#3.1 Set the rules of the game
-def puzzleRules(Goal):
+#3.1 Create the game/rule of the game in OOP style
+""" 
+   NOTE:
+   Recommed playing 8-puzzle game to
+   underatnd rules and mechanics.
+"""
+class puzzleGame:
+   # Grab the initial values from Start.txt
+   def __init(self, initialize):
+      self.start = initialize
 
 # 2.0 Identify Algorithm
 def Algorithms(argv, flag):
