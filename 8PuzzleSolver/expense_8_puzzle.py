@@ -33,24 +33,12 @@ class puzzleGame:
    # Look for 0 within array, 0 will be our mover
    def ZeroLocation(self):
       return self.set.index(0)
-   
-   # Creating the 8 puzzle board game in 2D array
-   def constructBoard(self):
-      doubleArry = [[0 for i in range(3)] for j in range(3)]
-      for x in range(3):
-         for y in range(3):
-            doubleArry[x][y] = self.set[x*3+y]
-            
-      return doubleArry
 
    def moves(self, direction):
       CurrentIndex = self.ZeroLocation()
-      print(CurrentIndex)
       newSet = list(self.set)
-      print(newSet)
-
       """
-      index at 0 = [1][1]
+      index at 0 = [1,1]
       2 3 6
       1 0 7
       4 8 5
@@ -62,10 +50,10 @@ class puzzleGame:
          'right':[0, 1]
       }
 
-      # Check cu
+      #
       posZero_x, posZero_y = divmod(CurrentIndex,3)
-
       move = moves.get(direction)
+
       if move:
          newPos_x = posZero_x + move[1]
          newPos_y = posZero_y + move[0]
@@ -78,7 +66,9 @@ class puzzleGame:
             # Swap Zero with the moving position and update the Set with new position
             newSet[CurrentIndex], newSet[newIndex] = newSet[newIndex], newSet[CurrentIndex]
             self.set = tuple(newSet)
+
             return True
+         
       return False
 
 # 2.0 Identify Algorithm
@@ -107,7 +97,7 @@ def extractNum(file):
    for line in f:
       if line != "END OF FILE":
          for num in line.split():
-            numbers.append(int(num))
+            numbers.append(int(num)) # Changed to int to find Zero
    f.close()
    return numbers
 
