@@ -1,24 +1,31 @@
 import os
 import sys
-from collections import deque
 
 #3.0 List of available Algorithms
 def BFS(Start, Goal, flag):
-   visited = set
-   queue = []
-
-   queue.append(Start)
-   visited = Start
+   visited = list()
+   queue = [Start]
 
    while queue:
 
-      check = queue.pop(0)
-      print(check, end= " ")
+      checkSet = queue.pop(0)
+      print(checkSet, end= " ")
 
-      for index in Start:
-         if index not in visited:
-            visited.append(index)
-            queue.append(Start)
+      if checkSet == Goal:
+         print("Complete:" + str(checkSet))
+         return 1
+      else:
+         visited.append(checkSet)
+      
+      #Generate all possible successors and play the game
+      for move in ["up", "down", "left", "right"]:
+         newGame = puzzleGame(checkSet)
+
+         #if False, the move was invalid
+         if newGame.moves(move):
+            newSet = list(newGame.set)
+            if newSet not in visited:
+               queue.append(newSet)
 
 def UCS(Start, Goal, flag):
    print("Hello UCS")
