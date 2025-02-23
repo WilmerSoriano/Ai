@@ -1,11 +1,24 @@
 import os
 import sys
+from collections import deque
 
 #3.0 List of available Algorithms
 def BFS(Start, Goal, flag):
-   print(Start[4])
-   newGame = puzzleGame(Start)
-   newGame.moves("up")
+   visited = set
+   queue = []
+
+   queue.append(Start)
+   visited = Start
+
+   while queue:
+
+      check = queue.pop(0)
+      print(check, end= " ")
+
+      for index in Start:
+         if index not in visited:
+            visited.append(index)
+            queue.append(Start)
 
 def UCS(Start, Goal, flag):
    print("Hello UCS")
@@ -55,8 +68,8 @@ class puzzleGame:
       move = moves.get(direction)
 
       if move:
-         newPos_x = posZero_x + move[1]
-         newPos_y = posZero_y + move[0]
+         newPos_x = posZero_x + move[0]
+         newPos_y = posZero_y + move[1]
 
          # Check if move is within bound of game, CUDA method for 1D
          if 0 <= newPos_x < 3 and 0 <= newPos_y < 3:
