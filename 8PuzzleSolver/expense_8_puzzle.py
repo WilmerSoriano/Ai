@@ -1,18 +1,48 @@
 import os
 import sys
+from datetime import datetime
+
+Flag = 0
+
+# === If flag was set to true to print to file ====
+def WriteToFile(info):
+   if Flag == 1:
+      date = datetime.now()
+      FileStr = date.strftime("%m-%d-%Y_%I-%M_%p")
+      FileName = f"{FileStr}.txt"
+
+      with open(FileName, "w") as file:
+         file.write(info)
+
+def show(checkSet, expNode, genNode, info):
+   info += f"< state = {checkSet}, action = {{Start}} g(n) = {expNode}, d = {genNode}, f(n) = X\n"
+   return info
 
 #3.0 List of available Algorithms
-def BFS(Start, Goal, flag):
+def BFS(Start, Goal):
    visited = list()
    queue = [Start]
+   info =""
+   expNode = 0
+   genNode = 0
 
    while queue:
 
       checkSet = queue.pop(0)
-      print(checkSet, end= " ")
+
+      expNode += 1
+      if(Flag == 1):
+         info = show(checkSet, expNode, genNode, info)
+         info += f"Iteration {expNode}: Fringe = {queue}, Closed = {visited}\n"
+         if expNode > 1000:
+            WriteToFile(info)
+            return 0
+      print(expNode)
 
       if checkSet == Goal:
-         print("Complete:" + str(checkSet))
+         print("Goal has been found" + str(checkSet))
+         info += f"Goal Found: {checkSet}\n"
+         WriteToFile(info)
          return 1
       else:
          visited.append(checkSet)
@@ -24,16 +54,18 @@ def BFS(Start, Goal, flag):
          #if False, the move was invalid
          if newGame.moves(move):
             newSet = list(newGame.set)
+            genNode += 1
             if newSet not in visited:
                queue.append(newSet)
 
-def UCS(Start, Goal, flag):
-   print("Hello UCS")
+def UCS(Start, Goal):
+   info = "SHOULD WORK"
+   WriteToFile(info)
 
-def Greedy(Start, Goal, flag):
+def Greedy(Start, Goal):
    print("Hello greedy")
 
-def A_Star(Start, Goal, flag):
+def A_Star(Start, Goal):
    print("Hello A*")
 
 #3.1 Create the game/rule of the game in OOP style
@@ -92,23 +124,23 @@ class puzzleGame:
       return False
 
 # 2.0 Identify Algorithm
-def Algorithms(argv, flag):
+def Algorithms(argv):
    Start = extractNum(argv[1])
    Goal = extractNum(argv[2])
 
    # If no algorithm inputed, default to A*
    if len(argv) < 4:
-      A_Star(Start, Goal, flag)
+      A_Star(Start, Goal)
    else:
       match argv[3]:
          case "bfs":
-            BFS(Start, Goal, flag)
+            BFS(Start, Goal)
          case "ucs":
-            UCS(Start, Goal, flag)
+            UCS(Start, Goal)
          case "greedy":
-            Greedy(Start, Goal, flag)
+            Greedy(Start, Goal)
          case "a*":
-            A_Star(Start, Goal, flag)
+            A_Star(Start, Goal)
 
 #2.1 Extract the numbers from the file
 def extractNum(file):
@@ -134,8 +166,7 @@ if __name__ == "__main__":
       exit -1
    
    # Check if dump-flag was set
-   flag = 0
    if len(argv) == 5:
-      flag = argv[4]
+      Flag = int(argv[4])
    
-   Algorithms(argv, flag)
+   Algorithms(argv)
