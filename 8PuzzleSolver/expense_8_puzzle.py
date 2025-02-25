@@ -3,60 +3,102 @@ import sys
 from datetime import datetime
 
 Flag = 0
+FileName = None
 
-# === If flag was set to true to print to file ====
+# === If flag was set true, print to file ====
 def WriteToFile(info):
-   if Flag == 1:
+   global FileName
+
+   if FileName is None:
       date = datetime.now()
-      FileStr = date.strftime("%m-%d-%Y_%I-%M_%p")
+      FileStr = date.strftime("trace-%m-%d-%Y-%I-%M_%p")
       FileName = f"{FileStr}.txt"
+   
+   with open(FileName, "a") as file:
+      file.write(info)
 
-      with open(FileName, "w") as file:
-         file.write(info)
-
-def show(checkSet, expNode, genNode, info):
-   info += f"< state = {checkSet}, action = {{Start}} g(n) = {expNode}, d = {genNode}, f(n) = X\n"
-   return info
+def FormatQueue(checkSet, Action, expNode, genNode, N, parent):
+   return f"< state = {checkSet}, action = Moved {Action} g(n) = {expNode}, d = {genNode}, f(n) = {N}, Parent = Pointer to {parent} >:\n"
 
 #3.0 List of available Algorithms
 def BFS(Start, Goal):
-   visited = list()
-   queue = [Start]
-   info =""
+   visited = set()
+   checkMove = ""
+   info = ""
+   popNode = 0
    expNode = 0
    genNode = 0
+   cost = 0
+   queue = [(Start, "Start", 0, 0, 0, None)]
 
    while queue:
+      currentSet = queue.pop(0)
+      checkSet, m, c, depth, f, parent = currentSet
 
-      checkSet = queue.pop(0)
+      if Flag == 1:
+         info += "Generating successors to " 
+         info += FormatQueue(checkSet, checkMove, cost, depth, 0, parent)
+         info += "\t\tFringe:[\n"
 
-      expNode += 1
-      if(Flag == 1):
-         info = show(checkSet, expNode, genNode, info)
-         info += f"Iteration {expNode}: Fringe = {queue}, Closed = {visited}\n"
-         if expNode > 1000:
+         #Clean up the string, to make progress faster
+         if expNode % 1000 == 0:
             WriteToFile(info)
-            return 0
-      print(expNode)
+            print(popNode)
+            info = ""
 
       if checkSet == Goal:
-         print("Goal has been found" + str(checkSet))
-         info += f"Goal Found: {checkSet}\n"
-         WriteToFile(info)
+         solutionPath = []
+         while currentSet is not None:
+            solutionPath.append(currentSet)
+            currentSet = currentSet[5]
+         solutionPath.reverse()
+         depSolution = len(solutionPath)
+
+         print("Goal has been found " + str(checkSet))
+         print("Node Popped:", popNode)
+         print("Node Expanded:", expNode)
+         print("Node Generated:", genNode)
+         print("Max Fringe Size:", str(len(queue)))
+         print(f"Solution Found at depth {depSolution} with cost of {cost}.")
+         print("Steps:")
+         for showMove in solutionPath:
+            print(showMove[1])
+
+         if Flag == 1:
+            info += f"Goal Found: {checkSet}\n"
+            WriteToFile(info)
          return 1
-      else:
-         visited.append(checkSet)
       
+      visited.add(tuple(checkSet))
+      popNode += 1
+      succGen = 0
+
       #Generate all possible successors and play the game
       for move in ["up", "down", "left", "right"]:
-         newGame = puzzleGame(checkSet)
-
          #if False, the move was invalid
-         if newGame.moves(move):
+         newGame = puzzleGame(checkSet)
+         checkMove = newGame.moves(move)
+
+         if checkMove:
             newSet = list(newGame.set)
-            genNode += 1
-            if newSet not in visited:
-               queue.append(newSet)
+            succGen += 1
+            expNode += 1
+            newDep = depth + 1
+            if tuple(newSet) not in visited:
+               genNode += 1
+               queue.append((newSet, checkMove,  cost, newDep, 0, currentSet))
+               chold, dhold = checkMove
+               cost += chold
+
+      if Flag == 1:
+         info += "\t\t]\n"
+         info += f"\t\t{succGen} successors generated\n"
+         info += f"\t\tClosed: {list(visited)}\n\n"
+         info += f"\t\tFringe:[\n"
+         for state in queue:
+            info += "\t\t\t"
+            info += FormatQueue(state[0], state[1], state[2], state[3], state[4], state[5])
+         info += f"\t\t]\n"
 
 def UCS(Start, Goal):
    info = "SHOULD WORK"
@@ -71,11 +113,8 @@ def A_Star(Start, Goal):
 #3.1 Create the game/rule of the game in OOP style
 """ 
    NOTE:
-   Recommed playing 8-puzzle game to
-   understand rules and mechanics.
-
-   Zero would be our perspective 
-
+   Self reminder, Zero would be our perspective/controller 
+   although the other values are being moved.
 """
 class puzzleGame:
    # Constructor to initialize values
@@ -119,7 +158,8 @@ class puzzleGame:
             newSet[CurrentIndex], newSet[newIndex] = newSet[newIndex], newSet[CurrentIndex]
             self.set = tuple(newSet)
 
-            return True
+            moved = newSet[CurrentIndex]
+            return (moved, direction)
          
       return False
 
@@ -168,5 +208,11 @@ if __name__ == "__main__":
    # Check if dump-flag was set
    if len(argv) == 5:
       Flag = int(argv[4])
-   
+      if Flag == 1:
+         info = ""
+         info += f"\nCommand-Line Arguments : [{argv[1]}, {argv[2]}, {argv[3]}, {argv[4]}]\n"
+         info += f"Method Selected: { argv[3] }\n"
+         info += f"Running { argv[3] }\n"
+         WriteToFile(info)
+
    Algorithms(argv)
