@@ -20,6 +20,49 @@ def WriteToFile(info):
 def FormatQueue(checkSet, Action, expNode, genNode, N, parent):
    return f"< state = {checkSet}, action = Moved {Action} g(n) = {expNode}, d = {genNode}, f(n) = {N}, Parent = Pointer to {parent} >:\n"
 
+def Formatchild(succGen, visited, queue):
+   info = ""
+   info += f"\t\t{succGen} successors generated\n"
+   info += f"\t\tClosed: {list(visited)}\n\n"
+   info += f"\t\tFringe:[\n"
+   for state in queue:
+      info += "\t\t\t"
+      info += FormatQueue(state[0], state[1], state[2], state[3], state[4], state[5])
+   info += f"\t\t]\n"
+   return info
+
+def FormatResult(currentSet, checkSet, popNode, expNode, genNode, queue, cost):
+   info = ""
+   solutionPath = []
+   while currentSet is not None:
+      solutionPath.append(currentSet)
+      currentSet = currentSet[5]
+   solutionPath.reverse()
+   depSolution = len(solutionPath)
+
+   if Flag == 1:
+      info += f"Goal has been found {checkSet}\n"
+      info += f"Node Popped:{popNode}\n"
+      info += f"Node Expanded:{expNode}\n"
+      info += f"Node Generated:{genNode}\n"
+      info += f"Max Fringe Size: {str(len(queue))}\n"
+      info += f"Solution Found at depth {depSolution} with cost of {cost}.\n"
+      info += "Steps:"
+   print("Goal has been found " + str(checkSet))
+   print("Node Popped:", popNode)
+   print("Node Expanded:", expNode)
+   print("Node Generated:", genNode)
+   print("Max Fringe Size:", str(len(queue)))
+   print(f"Solution Found at depth {depSolution} with cost of {cost}.")
+   print("Steps: ")
+   for showMove in solutionPath:
+      print("Move", showMove[1])
+      if Flag == 1:
+         info += f"Move {showMove[1]}\n"
+
+   if Flag == 1:
+      WriteToFile(info)
+
 #3.0 List of available Algorithms
 def BFS(Start, Goal):
    visited = set()
@@ -38,37 +81,16 @@ def BFS(Start, Goal):
       if Flag == 1:
          info += "Generating successors to " 
          info += FormatQueue(checkSet, checkMove, cost, depth, 0, parent)
-         info += "\t\tFringe:[\n"
 
-         #Clean up the string, to make progress faster
-         if expNode % 1000 == 0:
+         #Clean up the info-string-type, to make progress faster
+         if expNode % 500 == 0:
             WriteToFile(info)
-            print(popNode)
             info = ""
-
-      if checkSet == Goal:
-         solutionPath = []
-         while currentSet is not None:
-            solutionPath.append(currentSet)
-            currentSet = currentSet[5]
-         solutionPath.reverse()
-         depSolution = len(solutionPath)
-
-         print("Goal has been found " + str(checkSet))
-         print("Node Popped:", popNode)
-         print("Node Expanded:", expNode)
-         print("Node Generated:", genNode)
-         print("Max Fringe Size:", str(len(queue)))
-         print(f"Solution Found at depth {depSolution} with cost of {cost}.")
-         print("Steps:")
-         for showMove in solutionPath:
-            print(showMove[1])
-
-         if Flag == 1:
-            info += f"Goal Found: {checkSet}\n"
-            WriteToFile(info)
+      #checkSet == Goal:
+      if expNode > 1000:
+         FormatResult(currentSet, checkSet, popNode, expNode, genNode, queue, cost)
          return 1
-      
+
       visited.add(tuple(checkSet))
       popNode += 1
       succGen = 0
@@ -89,16 +111,8 @@ def BFS(Start, Goal):
                queue.append((newSet, checkMove,  cost, newDep, 0, currentSet))
                chold, dhold = checkMove
                cost += chold
-
       if Flag == 1:
-         info += "\t\t]\n"
-         info += f"\t\t{succGen} successors generated\n"
-         info += f"\t\tClosed: {list(visited)}\n\n"
-         info += f"\t\tFringe:[\n"
-         for state in queue:
-            info += "\t\t\t"
-            info += FormatQueue(state[0], state[1], state[2], state[3], state[4], state[5])
-         info += f"\t\t]\n"
+         info += Formatchild(succGen, visited, queue)
 
 def UCS(Start, Goal):
    info = "SHOULD WORK"
@@ -114,7 +128,7 @@ def A_Star(Start, Goal):
 """ 
    NOTE:
    Self reminder, Zero would be our perspective/controller 
-   although the other values are being moved.
+   even though the other values are being moved.
 """
 class puzzleGame:
    # Constructor to initialize values
