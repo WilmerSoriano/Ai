@@ -17,8 +17,8 @@ def WriteToFile(info):
    with open(FileName, "a") as file:
       file.write(info)
 
-def FormatQueue(checkSet, Action, expNode, genNode, N, parent):
-   return f"< state = {checkSet}, action = Moved {Action} g(n) = {expNode}, d = {genNode}, f(n) = {N}, Parent = Pointer to {parent} >:\n"
+def FormatQueue(State, Move, Cost, depth, N, parent):
+   return f"< state = {State}, action = Moved {Move} g(n) = {Cost}, d = {depth}, f(n) = {N}, Parent = Pointer to {parent} >:\n"
 
 def Formatchild(succGen, visited, queue):
    info = ""
@@ -27,26 +27,30 @@ def Formatchild(succGen, visited, queue):
    info += f"\t\tFringe:[\n"
    for state in queue:
       info += "\t\t\t"
-      info += FormatQueue(state[0], state[1], state[2], state[3], state[4], state[5])
+      info += FormatQueue(state[3], state[1], state[2], state[4], state[0], state[5])
    info += f"\t\t]\n"
    return info
 
-def FormatResult(currentSet, checkSet, popNode, expNode, genNode, queue):
+def FormatResult(currentSet, checkSet, popNode, expNode, genNode, queue, MaxFringe):
    #queue.append((newSet, checkMove,  chold, newDep, 0, currentSet)) REFRENCE
    info = ""
    solutionPath = []
    cost = 0
-
+   # tracing the path back from Goal to Start
    while currentSet is not None:
       solutionPath.append(currentSet)
       currentSet = currentSet[5]
       
    solutionPath.reverse()
    depSolution = len(solutionPath)
-
+   """
    for MoveCost in solutionPath:
       cost += MoveCost[2]
-
+   """
+   # only the cost
+   if solutionPath:
+      cost = solutionPath[-1][2]  
+   
    if Flag == 1:
       info += f"Goal has been found {checkSet}\n"
       info += f"Node Popped:{popNode}\n"
@@ -54,12 +58,12 @@ def FormatResult(currentSet, checkSet, popNode, expNode, genNode, queue):
       info += f"Node Generated:{genNode}\n"
       info += f"Max Fringe Size: {str(len(queue))}\n"
       info += f"Solution Found at depth {depSolution-1} with cost of {cost}.\n"
-      info += "Steps:"
+      info += "Steps: "
    print("Goal has been found " + str(checkSet))
    print("Node Popped:", popNode)
    print("Node Expanded:", expNode)
    print("Node Generated:", genNode)
-   print("Max Fringe Size:", str(len(queue)))
+   print("Max Fringe Size:", MaxFringe)
    print(f"Solution Found at depth {depSolution-1} with cost of {cost}.") 
    print("Steps: ")
 
@@ -73,18 +77,29 @@ def FormatResult(currentSet, checkSet, popNode, expNode, genNode, queue):
 
 #3.0 List of available Algorithms
 def BFS(Start, Goal):
-   queue = [(Start, "Start", 0, 0, 0, None)]
+   queue = [( 0,("Start", None), 0, Start, 0, None)]
    visited = set()
    info = ""
    popNode = 0
    expNode = 0
-   genNode = 0
+   genNode = 1
+   MaxFringe = 0
 
    while queue:
       popNode += 1
       currentSet = queue.pop(0)
-      checkSet, checkMove, cost, depth, f, parent = currentSet
-
+      f, checkMove, cost, checkSet, depth, parent = currentSet
+   
+      if checkSet == Goal:
+         if Flag == 1:
+            WriteToFile(info)
+         FormatResult(currentSet, checkSet, popNode, expNode, genNode, queue, MaxFringe)
+         return 1
+      
+      if tuple(checkSet) not in visited:
+            visited.add(tuple(checkSet))
+            expNode += 1
+      
       if Flag == 1:
          info += "Generating successors to " 
          info += FormatQueue(checkSet, checkMove, cost, depth, 0, parent)
@@ -93,98 +108,240 @@ def BFS(Start, Goal):
          if expNode % 500 == 0:
             WriteToFile(info)
             info = ""
-   
-      if checkSet == Goal:
-         FormatResult(currentSet, checkSet, popNode, expNode, genNode, queue)
-         return 1
 
-      succGen = 0
       # Generate all possible successors and play the game
-      for move in ["up", "down", "left", "right"]:
+      succGen = 0
+      for moves in ["up", "down", "left", "right"]:
          newGame = puzzleGame(checkSet)
-         checkMove = newGame.moves(move)
+         checkMove = newGame.moves(moves)
          
          # If False, the move was invalid
          if checkMove:
             newSet = list(newGame.set)
             chold, dhold = checkMove
+            newCost = cost + chold
             newDep = depth + 1
-            expNode += 1
+            genNode += 1
 
             if tuple(newSet) not in visited:
-               visited.add(tuple(checkSet))
                succGen += 1
-               genNode += 1
-               queue.append((newSet, checkMove,  chold, newDep, f, currentSet))
-               cost += chold
-
+               #cost += chold
+               queue.append((f, checkMove, newCost, newSet, newDep, currentSet))
+      
+      MaxFringe = max(MaxFringe, len(queue))
       if Flag == 1:
          info += Formatchild(succGen, visited, queue)
 
 def UCS(Start, Goal):
-    # Some implemenation are similar to BFS
-    info = ""
-    visited = {}
-    popNode = 0
-    expNode = 0
-    genNode = 0
-            # Re-arranged to fix print output info
-    queue = [(0, "Start", 0, Start, 0, None)]
-    heapq.heapify(queue)
+   # Some implemenation are similar to BFS
+   info = ""
+   visited = {}
+   popNode = 0
+   expNode = 0
+   genNode = 1
+   MaxFringe = 0
 
-    while queue:
-        #  NEW, checkMove, cost, file, depth, parent [5]
-        popNode += 1
-        currentCost, move, c, checkSet, depth, parent = heapq.heappop(queue)
+   # Re-arranged to fix print output info
+   queue = [(0, ("Start", None), 0, Start, 0, None)]
+   heapq.heapify(queue)
 
-        # NEW. Skip if we found a better path already
-        Cost = tuple(checkSet)
-        if Cost in visited and visited[Cost] <= currentCost:
+   while queue:
+      #  NEW, checkMove, cost, file, depth, parent [5]
+      popNode += 1
+      currentSet = heapq.heappop(queue)
+      currentCost, move, cost, checkSet, depth, parent = currentSet
+      key = tuple(checkSet)
+
+      if checkSet == Goal:
+         if Flag == 1:
+            WriteToFile(info)
+         MainSet = currentSet
+         FormatResult(MainSet, checkSet, popNode, expNode, genNode, queue, MaxFringe)
+         return 1
+
+      if key in visited and visited[key] <= currentCost:
             continue
-        visited[Cost] = currentCost
+      visited[key] = currentCost
+      expNode += 1
 
-        if Flag == 1:
-            info += "Generating successors to "
-            info += FormatQueue(checkSet, move, currentCost, depth, 0, parent)
+      if Flag == 1:
+         info += "Generating successors to "
+         info += FormatQueue(checkSet, move, currentCost, depth, 0, parent)
             
-            if expNode % 500 == 0:
-               WriteToFile(info)
-               info = ""
+         if expNode % 500 == 0:
+            WriteToFile(info)
+            info = ""
 
-        if checkSet == Goal:
-            parentSet = (currentCost, move, c, checkSet, depth, parent)
-            FormatResult(parentSet, checkSet, popNode, expNode, genNode, queue)
-            return 1
+      succGen = 0
+      for moves in ["up", "down", "left", "right"]:
+         newGame = puzzleGame(checkSet)
+         checkMove = newGame.moves(moves)
 
-        succGen = 0
-        for move_dir in ["up", "down", "left", "right"]:
-            newGame = puzzleGame(checkSet)
-            checkMove = newGame.moves(move_dir)
-
-            if checkMove:
-                newSet = list(newGame.set)
-                key = tuple(newSet)
+         if checkMove:
+            newSet = list(newGame.set)
                 
-                chold, dhold = checkMove
-                newCost = currentCost + chold
-                newDepth = depth + 1
-                expNode += 1
+            chold, dhold = checkMove
+            newCost = currentCost + chold
+            newDepth = depth + 1
+            genNode += 1
                 
-                # NEW. only add if cheaper than existing path
-                if newCost < visited.get(key, float('inf')):
-                    succGen += 1
-                    genNode += 1
-                    parentSet = (currentCost, move, c, checkSet, depth, parent)
-                    heapq.heappush(queue, (newCost, checkMove, chold, newSet, newDepth, parentSet))
+            if (tuple(newSet) not in visited) or (newCost < visited.get(tuple(newSet), float('inf'))):
+               succGen += 1
+               parentSet = (newCost, checkMove, newCost, newSet, newDepth, currentSet)
+               heapq.heappush(queue, parentSet)
+               MaxFringe = max(MaxFringe, len(queue))
+      if Flag == 1:
+         info += Formatchild(succGen, visited, queue)
 
-        if Flag == 1:
-            info += Formatchild(succGen, visited, queue)
+# hueristic(n) = estimate of cost from n to the closest goal
+"""
+   Using the Manhattan distance
+   h(n)= Tile can move to any 
+   adjacent square + cost = 47
+"""
+def heuristic(Start, goalPos):
+   heur = 0
+   # For every number in Start file
+   # find it's position, add desire position 
+   # and 
+   for line, num in enumerate(Start): 
+      if num == 0:
+         continue
+      target_y, target_x = goalPos[num]
+      current_y, current_x = divmod(line, 3)
+      heur += num * (abs(current_y - target_y) + abs(current_x - target_x))
+   return heur
 
 def Greedy(Start, Goal):
-   print("Hello greedy")
+   visited = {}
+   popNode = 0
+   expNode = 0
+   genNode = 1
+   max_fringe = 0
+
+   #calcualting herustic
+   goalPos = { 
+      line: divmod(num, 3)
+      for num, line in enumerate(Goal)
+         if line != 0
+   }
+   MainHeu = heuristic(Start, goalPos)
+
+   #(heursitic, move, cost, file, depth, parent)
+   queue = [(MainHeu, ("Start", None), 0, Start, 0, None)]
+   heapq.heapify(queue)
+   info = ""
+
+   while queue:
+      popNode += 1
+      heur, move, cost, state, depth, parent = heapq.heappop(queue)
+      key = tuple(state)
+
+      if state == Goal:
+         if Flag == 1:
+            WriteToFile(info)
+         MainSet = (heur, move, cost, state, depth, parent)
+         FormatResult(MainSet, state, popNode, expNode, genNode, queue, max_fringe)
+         return 1
+      
+      if key in visited and visited[key] <= cost:
+         continue
+      visited[key] = cost
+      expNode += 1
+
+      if Flag == 1:
+         info += "Generating successors to " 
+         info += FormatQueue(state, move, cost, depth, heur, parent)
+         WriteToFile(info)
+         info = ""
+
+      succGen = 0
+      for moves in ["up", "down", "left", "right"]:
+         newGame = puzzleGame(state)
+         checkMove = newGame.moves(moves)
+
+         if checkMove:
+            chold, dhold= checkMove
+            newSet = list(newGame.set)
+            newDepth = depth + 1
+            newCost = cost + chold
+            new_h = heuristic(newSet, goalPos)
+
+            # If new state is not in closed or new lower cost
+            if (tuple(newSet) not in visited) or (newCost < visited.get(tuple(newSet), float('inf'))):
+               parentSet = (heur,(chold, dhold), newCost, state, depth, parent)
+               heapq.heappush(queue, (new_h, (chold, dhold), newCost, newSet, newDepth, parentSet))
+               genNode += 1
+               succGen += 1
+   
+      max_fringe = max(max_fringe, len(queue))
+      if Flag == 1:
+         info += Formatchild(succGen, visited, queue)
 
 def A_Star(Start, Goal):
-   print("Hello A*")
+   info = ""
+   visited = {} 
+   popNode = 0
+   expNode = 0
+   genNode = 1
+   max_fringe = 0
+
+   goal_positions = { 
+      line: divmod(num, 3) 
+      for num, line in enumerate(Goal) 
+         if line != 0
+   }
+   initial_h = heuristic(Start, goal_positions)
+
+    # (f(n) = g(n) + h(n), move, cost, state, depth, parent)
+   queue = [(initial_h + 0, ("Start",None), 0, Start, 0, None)]
+   heapq.heapify(queue)
+
+   while queue:
+      f, move, g, state, depth, parent = heapq.heappop(queue)
+      popNode += 1
+      state_key = tuple(state)
+
+      if state == Goal:
+         if Flag == 1:
+            WriteToFile(info)
+         mainState = (f, move, g, state, depth, parent)
+         FormatResult(mainState, state, popNode, expNode, genNode, queue, max_fringe)
+         return 1
+      
+      if state_key in visited and visited[state_key] <= g:
+         continue
+      visited[state_key] = g  # Update the cost to reach this state
+      expNode += 1
+
+      if Flag == 1:
+         info += "Generating successors to "
+         info += FormatQueue(state, move, g, depth, f, parent)
+         WriteToFile(info)
+         info = ""
+
+
+      succGen = 0
+      for direction in ["up", "down", "left", "right"]:
+         game = puzzleGame(state)
+         result = game.moves(direction)
+
+         if result:
+            moved_tile, dhold = result
+            new_state = list(game.set)
+            new_g = g + moved_tile
+            new_h = heuristic(new_state, goal_positions)
+            new_f = new_g + new_h
+
+            # Only add if the state hasn't been visited or the new cost is lower
+            if (tuple(new_state) not in visited) or (new_g < visited.get(tuple(new_state), float('inf'))):
+               parentSet = (f, (moved_tile, dhold), g, state, depth, parent)
+               heapq.heappush(queue, (new_f, (moved_tile, dhold), new_g, new_state, depth + 1, parentSet))
+               genNode += 1
+               succGen += 1
+      max_fringe = max(max_fringe, len(queue))
+      if Flag == 1:
+         info += Formatchild(succGen, visited, queue)
 
 #3.1 Create the game/rule of the game
 """ 
