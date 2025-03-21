@@ -7,7 +7,7 @@ import sys
    Red marbel = 2 points each
    Blue marbel = 3 points each
    if std version then they are (-) points (Bad)
-   if misere then they are  (+) points (Good)
+   if misere then they are (+) points (Good)
 
    Algorithm: 
    MinMax with Alpha Beta Pruning for Agent player
@@ -22,10 +22,41 @@ import sys
    (with Zero remaining) the remain marble become the
    points (Either good or bad) each. 
 """
+# Select the game version
+def settingUp(red, blue, version, player):
+   print(red, blue, version, player+ "\n")
 
-# [num of Red] [num of Blue] [game version] [human or computer] 
-def nim(red, blue, version, player):
-   print(red, blue, version, player)
+   if version == "misere":
+      nim_misere(red, blue, player)
+   else:
+      nim_std(red, blue, player)
+
+def nim_std(red, blue, player):
+   print("standard BEGIN"+ "\n")
+
+   while red and blue != 0:
+      if player == "human":
+         red, blue, player = humanTurn(red, blue)
+      else:
+         red, blue, player = MinMax_AlphaBeta(red, blue)
+      print("in loop")
+
+   print("is out, result:", red, blue)
+
+def nim_misere(red, blue, player):
+   print("misere BEGIN"+ "\n")
+
+def humanTurn(red, blue):
+   print(red, blue, " My turn!!")
+   red = 0
+   blue = 56
+   return red, blue, "computer"
+
+def MinMax_AlphaBeta(red, blue):
+   print(red, blue, " Computer TURN")
+   red = 0
+   blue = 900
+   return red, blue, "human"
 
 #Build the game, build the agent, Micro SD then build the Algorithm
 
@@ -43,4 +74,5 @@ if __name__ == "__main__":
    else:
       player = "computer"
 
-   nim(argv[1], argv[2], version, player)
+   # [num of Red] [num of Blue] [game version] [human or computer] 
+   settingUp(argv[1], argv[2], version, player)
