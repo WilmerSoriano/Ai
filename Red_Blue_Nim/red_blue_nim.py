@@ -20,7 +20,6 @@
 """
 
 import sys
-import time
 
 MAX = 1000
 MIN = -1000
@@ -42,15 +41,15 @@ def settingUp(red, blue, version, player):
    else:
       nim_game(red, blue, player, 0)
 
-# For both standard and misere will be in loop until either Zero pile
+# For both standard and misere, will be in loop until either pile is Zero
 def nim_game(red, blue, player, version):
    
    while red and blue != 0:
       if player == "human":
          red, blue, player = humanTurn(red, blue)
       else:
-         option = possibleMoves(red, blue, version)
-         red, blue, player = computerTurn(red, blue, option, version)
+         options = possibleMoves(red, blue, version)
+         red, blue, player = computerTurn(red, blue, options, version)
 
    endGame(red, blue, player, version)
 
@@ -105,7 +104,7 @@ def endGame(red, blue, player, version):
 def humanTurn(red, blue):
    print("\n\n\n")
    print("============= HUMAN TURN =============")
-   print("Human it is you turn, here is you Pile:")
+   print("Human it is your turn, here is your Pile:")
    print(f"\n\t     Red:{red} | Blue:{blue}\n")
    color = input("*Pick a color(red or blue): ")
    
@@ -118,20 +117,21 @@ def humanTurn(red, blue):
 
    return red, blue, "computer"
 
-def computerTurn(red, blue, option, version):
+def computerTurn(red, blue, options, version):
    print("\n\n\n")
    print("************* COMPUTER TURN *************")
    print("\n\t\tThinking...\n")
 
    alpha = MIN
    beta = MAX
-   Bestscore = MIN
-   BestState = None
+   BestResult = MIN
+   BestChoice = None
 
-   for state in option:
+   # Will always check all 4 options before deciding on best move
+   for choice in options:
       newRed = red
       newBlue = blue
-      num, color = state
+      num, color = choice
 
       if color == "red":
          newRed = num
@@ -140,58 +140,60 @@ def computerTurn(red, blue, option, version):
 
       result = MinMax_AlphaBeta(newRed, newBlue, alpha, beta, version, False)
       
-      if result > Bestscore:
-         Bestscore = result
-         BestState = state
-         alpha = max(alpha, Bestscore)
-      if beta <= alpha:
-         break
+      # Determine if the result is good or bad option.
+      if result > BestResult:
+         BestResult = result
+         BestChoice = choice
+         alpha = max(alpha, BestResult)
 
-   if BestState:
-      num, color = BestState
+   if BestChoice:
+      num, color = BestChoice
       if color == "red":
-         removed = red - num
+         rem = red - num
          red = num
       else:
-         removed = blue - num
+         rem = blue - num
          blue = num
-      print(f" *Computer removed {removed} from {color} pile")
-
+      print(f" *Computer removed {rem} from {color} pile")
    print("\n   ********** END OF TURN ********** ")
    return red, blue, "human"
 
-def MinMax_AlphaBeta(red, blue, alpha, beta, version, is_max_turn):
+# NOTE to Self: use is_Max/is_Min? to determine MAX or MIN turn
+def MinMax_AlphaBeta(red, blue, alpha, beta, version, is_Max):
 
-    # Terminal condition check
+    # Terminal condition, check both and retreat the score
    if red == 0 or blue == 0:
       score = 2 * red + 3 * blue
 
-      if version == 0:  # Standard version
-         if is_max_turn:
-            return -score  # Computer loses (their turn)
+      # Standard version
+      if version == 0:
+         if is_Max:
+            return -score  # Computer loses, alert don't take this move
          else:
-            return score  # Human loses (computer wins)
-      else:  # Misère version
-         if is_max_turn:
-            return score  # Computer wins (their turn)
+            return score  # Human loses, then Computer wins, take this move
+      # Misere, vise-versa
+      else:
+         if is_Max:
+            return score 
          else:
-            return -score  # Human wins (computer loses)
+            return -score 
    
-   moves = possibleMoves(red, blue, version)
+   options = possibleMoves(red, blue, version)
 
-   if is_max_turn:
+   # Will check if its MAX Turn or MIN Turn (is_Max = Computer Turn, is_Min = Human)
+   if is_Max:
       best = MIN
-      for move in moves:
-         new_red = red
-         new_blue = blue
-         num, color = move
+      for choice in options:
+         newRed = red
+         newBlue = blue
+         num, color = choice
          
          if color == "red":
-            new_red = num
+            newRed = num
          else:
-            new_blue = num
+            newBlue = num
          
-         val = MinMax_AlphaBeta(new_red, new_blue, alpha, beta, version, False)
+         val = MinMax_AlphaBeta(newRed, newBlue, alpha, beta, version, False)
          
          best = max(best, val)
          alpha = max(alpha, best)
@@ -200,19 +202,21 @@ def MinMax_AlphaBeta(red, blue, alpha, beta, version, is_max_turn):
          if beta <= alpha:
             break
       return best
-   else:
+   
+   # Is is Min turn?
+   else: 
       best = MAX
-      for move in moves:
-         new_red = red
-         new_blue = blue
-         num, color = move
+      for choice in options:
+         newRed = red
+         newBlue = blue
+         num, color = choice
          
          if color == "red":
-            new_red = num
+            newRed = num
          else:
-            new_blue = num
+            newBlue = num
 
-         val = MinMax_AlphaBeta(new_red, new_blue, alpha, beta, version, True)
+         val = MinMax_AlphaBeta(newRed, newBlue, alpha, beta, version, True)
          
          best = min(best, val)
          beta = min(beta, best)
