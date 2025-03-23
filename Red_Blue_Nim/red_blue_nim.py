@@ -68,7 +68,8 @@ def possibleMoves(red, blue, version):
          option. append((red - 1, "red"))
       if blue >= 1:
          option.append((blue - 1, "blue"))
-   else: # Misere
+   # Misere
+   else: 
       if blue >= 1:
          option.append((blue - 1, "blue"))
       if red >= 1:
@@ -85,30 +86,27 @@ def endGame(red, blue, player, version):
    print("\n\n\n")
    print("|=*=*=*=*=*=* GAME HAS ENDED! =*=*=*=*=*=*|")
    print("\t      RESULT ARE OUT:\n")
+   print(f"\t      Red:{red} | Blue:{blue}\n")
 
    # Calculates total points left
-   if red == 0:
-      result = blue*3
-   else:
-      result = red*2
+   result = 2 * red + 3 * blue
 
-   # Determine the correct game (either give +/- points)
+   # Determine the correct game (either give +/- points) and gives the correct winnig sign to player
+   winner = None
    if version == 1:
       print(f"\t*{player} has gained: +{result} points!\n")
+      winner = "\t   *COMPUTER HAS WON!" if player == "computer" else "\t   *HUMAN HAS WON!"
    else:
       print(f"\t*{player} has gained: -{result} points!\n")
+      winner = "\t   *HUMAN HAS WON!" if player == "computer" else "\t   *COMPUTER HAS WON!"
 
-   # Gives the correct winnig sign to player
-   if player == "computer":
-      print("\t   *COMPUTER HAS WON!")
-   else:
-      print("\t   *HUMAN HAS WON!")
+   print(winner)
   
 def humanTurn(red, blue):
    print("\n\n\n")
    print("============= HUMAN TURN =============")
    print("Human it is you turn, here is you Pile:")
-   print(f"\n\tRed:{red}\t| Blue:{blue}\n")
+   print(f"\n\t     Red:{red} | Blue:{blue}\n")
    color = input("*Pick a color(red or blue): ")
    
    num = int(input("*How many would you like to remove?(2 or 1): "))
@@ -125,68 +123,106 @@ def computerTurn(red, blue, option, version):
    print("************* COMPUTER TURN *************")
    print("\n\t\tThinking...\n")
 
-   alpha = MAX
-   beta = MIN
+   alpha = MIN
+   beta = MAX
    Bestscore = MIN
-   BestState = ""
+   BestState = None
 
    for state in option:
-      currentRed = red
-      currentBlue = blue
+      newRed = red
+      newBlue = blue
       num, color = state
-      
-      if color == "red":
-         currentRed = num
-      else:
-         currentBlue = num
 
-      result = MinMax_AlphaBeta(currentRed, currentBlue, alpha, beta, version, False)
+      if color == "red":
+         newRed = num
+      else:
+         newBlue = num
+
+      result = MinMax_AlphaBeta(newRed, newBlue, alpha, beta, version, False)
       
       if result > Bestscore:
          Bestscore = result
-         
+         BestState = state
+         alpha = max(alpha, Bestscore)
+      if beta <= alpha:
+         break
 
-   # Determine which option the Comp took the set red/blue to that number
-   print(f"Computer removed ")
+   if BestState:
+      num, color = BestState
+      if color == "red":
+         removed = red - num
+         red = num
+      else:
+         removed = blue - num
+         blue = num
+      print(f" *Computer removed {removed} from {color} pile")
 
    print("\n   ********** END OF TURN ********** ")
    return red, blue, "human"
 
-def MinMax_AlphaBeta(nodeIndex, maximizingPlayer, state, alpha, beta):
+def MinMax_AlphaBeta(red, blue, alpha, beta, version, is_max_turn):
 
-   if :
-      return state[nodeIndex]
-   if maximizingPlayer: 
-      best = MIN
- 
-      # Recur for left and right children 
-      for i in range(0, 2): 
-             
-         val = MinMax_AlphaBeta(, , False, state, alpha, beta)
-         print("Val HERE:", val) 
-         best = max(best, val) 
-         alpha = max(alpha, best) 
- 
-         # Alpha Beta Pruning 
-         if beta <= alpha: 
-            break
-      return best 
+    # Terminal condition check
+   if red == 0 or blue == 0:
+      score = 2 * red + 3 * blue
+
+      if version == 0:  # Standard version
+         if is_max_turn:
+            return -score  # Computer loses (their turn)
+         else:
+            return score  # Human loses (computer wins)
+      else:  # Misère version
+         if is_max_turn:
+            return score  # Computer wins (their turn)
+         else:
+            return -score  # Human wins (computer loses)
    
+   moves = possibleMoves(red, blue, version)
+
+   if is_max_turn:
+      best = MIN
+      for move in moves:
+         new_red = red
+         new_blue = blue
+         num, color = move
+         
+         if color == "red":
+            new_red = num
+         else:
+            new_blue = num
+         
+         val = MinMax_AlphaBeta(new_red, new_blue, alpha, beta, version, False)
+         
+         best = max(best, val)
+         alpha = max(alpha, best)
+         
+         # Prune
+         if beta <= alpha:
+            break
+      return best
    else:
       best = MAX
- 
-      # Recur for left and right children 
-      for i in range(0, 2): 
-         val = MinMax_AlphaBeta(, , True, values, alpha, beta)
-         best = min(best, val) 
-         beta = min(beta, best) 
- 
-         # Alpha Beta Pruning 
-         if beta <= alpha: 
+      for move in moves:
+         new_red = red
+         new_blue = blue
+         num, color = move
+         
+         if color == "red":
+            new_red = num
+         else:
+            new_blue = num
+
+         val = MinMax_AlphaBeta(new_red, new_blue, alpha, beta, version, True)
+         
+         best = min(best, val)
+         beta = min(beta, best)
+
+         # Prune
+         if beta <= alpha:
             break
       return best
 
-# 1. Check all user arguments 
+#Check all user arguments 
 if __name__ == "__main__":
 
    argv = sys.argv
