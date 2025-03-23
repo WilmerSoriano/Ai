@@ -22,6 +22,8 @@
 import sys
 import time
 
+MAX = 1000
+MIN = -1000
 
 # Setting up the game version before it starts
 def settingUp(red, blue, version, player):
@@ -36,48 +38,67 @@ def settingUp(red, blue, version, player):
    blue = int(blue)
 
    if version == "misere":
-      nim_misere(red, blue, player)
+      nim_game(red, blue, player, 1)
    else:
-      nim_std(red, blue, player)
+      nim_game(red, blue, player, 0)
 
 # For both standard and misere will be in loop until either Zero pile
-def nim_std(red, blue, player):
-
-   while red and blue != 0:
-      if player == "human":
-         red, blue, player = humanTurn(red, blue)
-      else:
-         red, blue, player = MinMax_AlphaBeta(red, blue)
-
-   print("\n\n\n")
-   print("|=*=*=*=*=*=* GAME HAS ENDED! =*=*=*=*=*=*|")
-   print("\t      RESULT ARE OUT:\n")
-   if red == 0:
-      result = blue*3
-   else:
-      result = red*2
-   print(f"\t*{player} has lost: -{result} points!\n")
-   if player == "computer":
-      print("\t   *HUMAN HAS WON!")
-   else:
-      print("\t   *COMPUTER HAS WON!")
-
-
-def nim_misere(red, blue, player):
+def nim_game(red, blue, player, version):
    
    while red and blue != 0:
       if player == "human":
          red, blue, player = humanTurn(red, blue)
       else:
-         red, blue, player = MinMax_AlphaBeta(red, blue)
+         option = possibleMoves(red, blue, version)
+         red, blue, player = computerTurn(red, blue, option, version)
+
+   endGame(red, blue, player, version)
+
+# Generate Valid possible moves
+def possibleMoves(red, blue, version):
+   # Standard Ver
+   option = []
+   if version == 0:
+      if red >= 2:
+         option.append((red - 2, "red"))      
+      if blue >= 2:
+         option.append((blue - 2, "blue"))
+      
+      if red >= 1:
+         option. append((red - 1, "red"))
+      if blue >= 1:
+         option.append((blue - 1, "blue"))
+   else: # Misere
+      if blue >= 1:
+         option.append((blue - 1, "blue"))
+      if red >= 1:
+         option. append((red - 1, "red"))
+
+      if blue >= 2:
+         option.append((blue - 2, "blue"))
+      if red >= 2:
+         option.append((red - 2, "red"))
+
+   return option
+
+def endGame(red, blue, player, version):
    print("\n\n\n")
    print("|=*=*=*=*=*=* GAME HAS ENDED! =*=*=*=*=*=*|")
    print("\t      RESULT ARE OUT:\n")
+
+   # Calculates total points left
    if red == 0:
       result = blue*3
    else:
       result = red*2
-   print(f"\t*{player} has gained: +{result} points!\n")
+
+   # Determine the correct game (either give +/- points)
+   if version == 1:
+      print(f"\t*{player} has gained: +{result} points!\n")
+   else:
+      print(f"\t*{player} has gained: -{result} points!\n")
+
+   # Gives the correct winnig sign to player
    if player == "computer":
       print("\t   *COMPUTER HAS WON!")
    else:
@@ -99,14 +120,71 @@ def humanTurn(red, blue):
 
    return red, blue, "computer"
 
-def MinMax_AlphaBeta(red, blue):
+def computerTurn(red, blue, option, version):
    print("\n\n\n")
    print("************* COMPUTER TURN *************")
-   print("\n\t\tThinking...")
-   #time.sleep(4) # NOTE: this is not necessary... just implementing for aesthetic reason...
-   red = 0
+   print("\n\t\tThinking...\n")
+
+   alpha = MAX
+   beta = MIN
+   Bestscore = MIN
+   BestState = ""
+
+   for state in option:
+      currentRed = red
+      currentBlue = blue
+      num, color = state
+      
+      if color == "red":
+         currentRed = num
+      else:
+         currentBlue = num
+
+      result = MinMax_AlphaBeta(currentRed, currentBlue, alpha, beta, version, False)
+      
+      if result > Bestscore:
+         Bestscore = result
+         
+
+   # Determine which option the Comp took the set red/blue to that number
+   print(f"Computer removed ")
+
    print("\n   ********** END OF TURN ********** ")
    return red, blue, "human"
+
+def MinMax_AlphaBeta(nodeIndex, maximizingPlayer, state, alpha, beta):
+
+   if :
+      return state[nodeIndex]
+   if maximizingPlayer: 
+      best = MIN
+ 
+      # Recur for left and right children 
+      for i in range(0, 2): 
+             
+         val = MinMax_AlphaBeta(, , False, state, alpha, beta)
+         print("Val HERE:", val) 
+         best = max(best, val) 
+         alpha = max(alpha, best) 
+ 
+         # Alpha Beta Pruning 
+         if beta <= alpha: 
+            break
+      return best 
+   
+   else:
+      best = MAX
+ 
+      # Recur for left and right children 
+      for i in range(0, 2): 
+         val = MinMax_AlphaBeta(, , True, values, alpha, beta)
+         best = min(best, val) 
+         beta = min(beta, best) 
+ 
+         # Alpha Beta Pruning 
+         if beta <= alpha: 
+            break
+      return best
 
 # 1. Check all user arguments 
 if __name__ == "__main__":
