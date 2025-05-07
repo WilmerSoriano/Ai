@@ -22,7 +22,7 @@ class compute_posterior:
             if candy == 'C':
                 self.current_probs[i] = (self.pro_cher[i] * self.hypo[i]) / self._get_currentTotal()
             else: #Lime
-                self.current_probs[i] = (self.pro_cher[i] * self.hypo[i]) / self._get_currentTotal()
+                self.current_probs[i] = (self.pro_lime[i] * self.hypo[i]) / self._get_currentTotal()
         
         self._write_toFile()
 
@@ -47,6 +47,8 @@ class compute_posterior:
 
         self.file.write(f"\n\nProbability that the next candy we pick will be C, given Q: {self.next_C}")
         self.file.write(f"\nProbability that the next candy we pick will be L, given Q: {self.next_L}\n")
+        # Remember the update the class hypothesis!
+        compute_posterior.hypo = self.current_probs.copy()
 
 if __name__ == "__main__":
     arg = sys.argv
