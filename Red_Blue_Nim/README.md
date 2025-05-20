@@ -1,4 +1,4 @@
-# Red-Blue Nim Game Solver (Python 3.10.12)
+# Red-Blue Nim Game Solver
 
 An interactive command‑line implementation of the Red‑Blue Nim game featuring Minimax with Alpha‑Beta pruning. The program supports both **standard** and **misère** versions and allows either the **human** or **computer** to move first.
 
