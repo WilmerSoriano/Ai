@@ -4,7 +4,7 @@ An interactive command‑line implementation of the Red‑Blue Nim game featurin
 
 ---
 
-## 🐍 Requirements
+## Requirements
 
 * **Python 3.x (or even version 2.x works fine)
 * No external dependencies (uses only the **`sys`** module for argument parsing)
