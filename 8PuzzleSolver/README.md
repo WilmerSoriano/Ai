@@ -1,4 +1,4 @@
-# 8-Puzzle Solver (Python 3)
+# 8-Puzzle Solver
 
 ## Language & Requirements
 
