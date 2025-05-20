@@ -1,4 +1,4 @@
-# Compute Posterior Probabilities (Python 3.10+)
+# Compute Posterior Probabilities
 
 A command-line tool to compute and record posterior probabilities for a sequence of observed candies (Cherry vs. Lime) under a simple Bayesian model.
 
